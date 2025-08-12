@@ -113,3 +113,44 @@ if __name__ == "__main__":
 
     print(f"Probability (8-year growers → 10-year achievers): {eight_prob:.2f}%")
     print(f"Probability (9-year growers → 10-year achievers): {nine_prob:.2f}%")
+
+
+    # NEW: Track full 10 year growers and which of them grew to DPS 25
+    ten_year_achievers = {}
+    ten_year_to_25_growers = {}
+
+    for ticker, dps_list in dps_dict.items():
+        counter = 0
+        ten_year_index = None
+        for index in range(1, len(dps_list)):
+            prev = dps_list[index - 1]
+            curr = dps_list[index]
+            if prev is not None and curr is not None and curr > prev:
+                counter += 1
+                if counter == 10:
+                    ten_year_index = index
+                    break
+            else:
+                counter = 0
+
+        if ten_year_index is not None:
+            ten_year_achievers[ticker] = dps_list[ten_year_index]
+            all_growth = True
+            for i in range(ten_year_index + 1, len(dps_list)):
+                prev = dps_list[i - 1]
+                curr = dps_list[i]
+                if prev is None or curr is None or curr <= prev:
+                    all_growth = False
+                    break
+            if all_growth:
+                ten_year_to_25_growers[ticker] = dps_list[-1]
+
+    print("Tickers with 10 consecutive years of dividend growth:", len(ten_year_achievers))
+    print("→ of those, number that kept growing through year 25:", len(ten_year_to_25_growers))
+
+    if len(ten_year_achievers) > 0:
+        long_term_growth_prob = 100 * len(ten_year_to_25_growers) / len(ten_year_achievers)
+    else:
+        long_term_growth_prob = 0
+
+    print(f"Probability (10-year achievers → grew every year to year 25): {long_term_growth_prob:.2f}%")
